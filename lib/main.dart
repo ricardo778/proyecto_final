@@ -1,4 +1,4 @@
-// main.dart (versión actualizada)
+// main.dart (versión corregida)
 import 'package:flutter/material.dart';
 import 'pantallas/splash_screen.dart';
 import 'servicios/tema_service.dart';
@@ -24,7 +24,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool _modoOscuro = false;
   String _idioma = 'es';
-  bool _logueado = false; // ✅ Control de autenticación
+  bool _logueado = false; 
 
   @override
   void initState() {
@@ -65,8 +65,6 @@ class _MyAppState extends State<MyApp> {
       theme: TemaService.getTema(_modoOscuro),
       home: SplashScreen(
         onConfiguracionCambiada: _cambiarConfiguracion,
-        onAutenticacionCambiada: _cambiarEstadoAutenticacion,
-        logueado: _logueado,
       ),
       debugShowCheckedModeBanner: false,
     );

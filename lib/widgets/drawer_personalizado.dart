@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../pantallas/configuracion_screen.dart';
 import '../pantallas/perfil_screen.dart';
+import '../pantallas/login_screen.dart';
 import '../servicios/idioma_service.dart';
 
 class DrawerPersonalizado extends StatelessWidget {
@@ -47,6 +48,45 @@ class DrawerPersonalizado extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _cerrarSesion(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.logout, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Cerrar Sesión'),
+          ],
+        ),
+        content: Text('¿Estás seguro de que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Cerrar Sesión'),
           ),
         ],
       ),
@@ -204,31 +244,6 @@ class DrawerPersonalizado extends StatelessWidget {
                   },
                 ),
 
-                // Calendario
-                ListTile(
-                  leading: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.calendar_today, color: Colors.red, size: 22),
-                  ),
-                  title: Text(
-                    'Calendario',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Próximamente: Vista de Calendario'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  },
-                ),
-
                 // Divider
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -274,6 +289,35 @@ class DrawerPersonalizado extends StatelessWidget {
                         backgroundColor: Colors.teal,
                       ),
                     );
+                  },
+                ),
+
+                // Divider
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Divider(thickness: 1.5),
+                ),
+
+                // Botón Cerrar Sesión
+                ListTile(
+                  leading: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.logout, color: Colors.red, size: 22),
+                  ),
+                  title: Text(
+                    'Cerrar Sesión',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // Cerrar drawer primero
+                    _cerrarSesion(context);
                   },
                 ),
               ],
