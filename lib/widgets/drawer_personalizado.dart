@@ -267,37 +267,6 @@ class DrawerPersonalizado extends StatelessWidget {
                   onTap: () => _mostrarAcercaDe(context),
                 ),
 
-                // Ayuda y Soporte
-                ListTile(
-                  leading: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.teal.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.help, color: Colors.teal, size: 22),
-                  ),
-                  title: Text(
-                    'Ayuda y Soporte',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Centro de ayuda - Próximamente'),
-                        backgroundColor: Colors.teal,
-                      ),
-                    );
-                  },
-                ),
-
-                // Divider
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Divider(thickness: 1.5),
-                ),
-
                 // Botón Cerrar Sesión
                 ListTile(
                   leading: Container(

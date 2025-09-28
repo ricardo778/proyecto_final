@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../modelos/evento.dart';
 
 class NuevoEvento extends StatefulWidget {
+  const NuevoEvento({super.key}); // ← agregado super.key
+
   @override
-  _NuevoEventoState createState() => _NuevoEventoState();
+  State<NuevoEvento> createState() => _NuevoEventoState();
 }
 
 class _NuevoEventoState extends State<NuevoEvento> {
@@ -12,7 +14,7 @@ class _NuevoEventoState extends State<NuevoEvento> {
   final _descripcionController = TextEditingController();
   final _ubicacionController = TextEditingController();
   final _imagenController = TextEditingController();
-  
+
   DateTime _fechaSeleccionada = DateTime.now();
   TimeOfDay _horaSeleccionada = TimeOfDay.now();
   TipoEvento _tipoSeleccionado = TipoEvento.CONCIERTO;
@@ -45,7 +47,6 @@ class _NuevoEventoState extends State<NuevoEvento> {
 
   void _guardarEvento() {
     if (_formKey.currentState!.validate()) {
-      // Combinar fecha y hora
       final fechaCompleta = DateTime(
         _fechaSeleccionada.year,
         _fechaSeleccionada.month,
@@ -54,20 +55,15 @@ class _NuevoEventoState extends State<NuevoEvento> {
         _horaSeleccionada.minute,
       );
 
-      // Crear nuevo evento (aquí normalmente guardarías en una base de datos)
       final nuevoEvento = Evento(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        titulo: _tituloController.text,
+        nombre: _tituloController
+            .text, // ERROR CORREGIDO: Usando 'titulo' en lugar de 'nombre'
         descripcion: _descripcionController.text,
         fecha: fechaCompleta,
         ubicacion: _ubicacionController.text,
         tipo: _tipoSeleccionado,
-        imagenUrl: _imagenController.text.isEmpty 
-            ? 'https://picsum.photos/300/200?random=${DateTime.now().millisecondsSinceEpoch}'
-            : _imagenController.text,
       );
 
-      // Retornar el evento a la pantalla anterior
       Navigator.pop(context, nuevoEvento);
     }
   }
@@ -76,16 +72,16 @@ class _NuevoEventoState extends State<NuevoEvento> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Agregar Nuevo Evento'),
+        title: const Text('Agregar Nuevo Evento'),
         actions: [
           IconButton(
-            icon: Icon(Icons.save),
+            icon: const Icon(Icons.save),
             onPressed: _guardarEvento,
           ),
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
@@ -93,7 +89,7 @@ class _NuevoEventoState extends State<NuevoEvento> {
               // Título
               TextFormField(
                 controller: _tituloController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Título del evento',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.title),
@@ -105,12 +101,12 @@ class _NuevoEventoState extends State<NuevoEvento> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Descripción
               TextFormField(
                 controller: _descripcionController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Descripción',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.description),
@@ -123,17 +119,17 @@ class _NuevoEventoState extends State<NuevoEvento> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Tipo de evento
               DropdownButtonFormField<TipoEvento>(
                 value: _tipoSeleccionado,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Tipo de evento',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.category),
                 ),
-                items: [
+                items: const [
                   DropdownMenuItem(
                     value: TipoEvento.CONCIERTO,
                     child: Text('Concierto'),
@@ -153,7 +149,7 @@ class _NuevoEventoState extends State<NuevoEvento> {
                   });
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Fecha y Hora
               Row(
@@ -162,7 +158,7 @@ class _NuevoEventoState extends State<NuevoEvento> {
                     child: InkWell(
                       onTap: () => _seleccionarFecha(context),
                       child: InputDecorator(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Fecha',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.calendar_today),
@@ -173,12 +169,12 @@ class _NuevoEventoState extends State<NuevoEvento> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: InkWell(
                       onTap: () => _seleccionarHora(context),
                       child: InputDecorator(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Hora',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.access_time),
@@ -191,12 +187,12 @@ class _NuevoEventoState extends State<NuevoEvento> {
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Ubicación
               TextFormField(
                 controller: _ubicacionController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Ubicación',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.location_on),
@@ -208,26 +204,26 @@ class _NuevoEventoState extends State<NuevoEvento> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // URL de imagen (opcional)
               TextFormField(
                 controller: _imagenController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'URL de imagen (opcional)',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.image),
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Botón guardar
               ElevatedButton(
                 onPressed: _guardarEvento,
-                child: Text('Guardar Evento'),
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: const Text('Guardar Evento'),
               ),
             ],
           ),

@@ -5,7 +5,7 @@ import '../pantallas/detalle_evento.dart';
 class TarjetaEvento extends StatelessWidget {
   final Evento evento;
 
-  const TarjetaEvento({required this.evento});
+  const TarjetaEvento({super.key, required this.evento});
 
   IconData _obtenerIconoPorTipo(TipoEvento tipo) {
     switch (tipo) {
@@ -15,6 +15,8 @@ class TarjetaEvento extends StatelessWidget {
         return Icons.shopping_cart;
       case TipoEvento.CONFERENCIA:
         return Icons.school;
+      default:
+        return Icons.event; // ← fallback
     }
   }
 
@@ -26,6 +28,8 @@ class TarjetaEvento extends StatelessWidget {
         return Colors.orange;
       case TipoEvento.CONFERENCIA:
         return Colors.blue;
+      default:
+        return Colors.grey; // ← fallback
     }
   }
 
@@ -33,10 +37,10 @@ class TarjetaEvento extends StatelessWidget {
     return '${fecha.day}/${fecha.month}/${fecha.year} ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
@@ -44,15 +48,17 @@ class TarjetaEvento extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => DetalleEvento(evento: evento)),
+            MaterialPageRoute(
+              builder: (context) => DetalleEvento(evento: evento),
+            ),
           );
         },
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: _obtenerColorPorTipo(evento.tipo).withOpacity(0.1),
                   shape: BoxShape.circle,
@@ -63,21 +69,21 @@ class TarjetaEvento extends StatelessWidget {
                   size: 24,
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      evento.titulo,
-                      style: TextStyle(
+                      evento.nombre,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       _formatearFecha(evento.fecha),
                       style: TextStyle(color: Colors.grey[600]),
@@ -89,7 +95,7 @@ class TarjetaEvento extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey),
+              const Icon(Icons.chevron_right, color: Colors.grey),
             ],
           ),
         ),

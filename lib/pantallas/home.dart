@@ -9,6 +9,24 @@ import '../widgets/drawer_personalizado.dart';
 import '../widgets/responsive_layout.dart';
 import 'nuevo_evento.dart';
 import 'configuracion_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../modelos/evento.dart';
+
+class ApiEventosService {
+  static const String baseUrl = "http://localhost:8000/api/v1/eventos";
+
+  static Future<List<Evento>> obtenerEventos() async {
+    final response = await http.get(Uri.parse(baseUrl));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Evento.fromJson(json)).toList();
+    } else {
+      throw Exception("Error al cargar eventos: ${response.statusCode}");
+    }
+  }
+}
 
 class Home extends StatefulWidget {
   @override
@@ -35,21 +53,22 @@ class _HomeState extends State<Home> {
     // Cargar preferencias de tema e idioma
     _modoOscuro = await TemaService.esModoOscuro();
     _idioma = await TemaService.obtenerIdioma();
-    
-    // Cargar eventos desde SharedPreferences
-    final eventosGuardados = await AlmacenamientoService.cargarEventos();
-    
-    setState(() {
-      if (eventosGuardados.isNotEmpty) {
-        eventos = eventosGuardados;
-      } else {
-        // Datos de ejemplo si no hay eventos guardados
-        eventos = EventosService.obtenerEventos();
-        AlmacenamientoService.guardarEventos(eventos);
-      }
-      _cargando = false;
-      _aplicarFiltros();
-    });
+
+    try {
+      final eventosApi = await ApiEventosService.obtenerEventos();
+      setState(() {
+        eventos = eventosApi;
+        _cargando = false;
+        _aplicarFiltros();
+      });
+    } catch (e) {
+      setState(() {
+        _cargando = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error cargando eventos: $e")),
+      );
+    }
   }
 
   Future<void> _cargarEventos() async {
@@ -57,13 +76,21 @@ class _HomeState extends State<Home> {
       _cargando = true;
     });
 
-    final eventosGuardados = await AlmacenamientoService.cargarEventos();
-    
-    setState(() {
-      eventos = eventosGuardados.isNotEmpty ? eventosGuardados : eventos;
-      _cargando = false;
-      _aplicarFiltros();
-    });
+    try {
+      final eventosApi = await ApiEventosService.obtenerEventos();
+      setState(() {
+        eventos = eventosApi;
+        _cargando = false;
+        _aplicarFiltros();
+      });
+    } catch (e) {
+      setState(() {
+        _cargando = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error recargando eventos: $e")),
+      );
+    }
   }
 
   void _aplicarFiltro(TipoEvento? tipo) {
@@ -75,25 +102,27 @@ class _HomeState extends State<Home> {
 
   void _aplicarFiltros() {
     List<Evento> eventosTemp = List.from(eventos);
-    
+
     // Aplicar filtro por tipo
     if (filtroActual != null) {
-      eventosTemp = eventosTemp.where((evento) => evento.tipo == filtroActual).toList();
+      eventosTemp =
+          eventosTemp.where((evento) => evento.tipo == filtroActual).toList();
     }
-    
+
     // Aplicar filtro de búsqueda
     if (_buscando && _controladorBusqueda.text.isNotEmpty) {
       final textoBusqueda = _controladorBusqueda.text.toLowerCase();
-      eventosTemp = eventosTemp.where((evento) =>
-        evento.titulo.toLowerCase().contains(textoBusqueda) ||
-        evento.descripcion.toLowerCase().contains(textoBusqueda) ||
-        evento.ubicacion.toLowerCase().contains(textoBusqueda)
-      ).toList();
+      eventosTemp = eventosTemp
+          .where((evento) =>
+              evento.nombre.toLowerCase().contains(textoBusqueda) ||
+              evento.descripcion.toLowerCase().contains(textoBusqueda) ||
+              evento.ubicacion.toLowerCase().contains(textoBusqueda))
+          .toList();
     }
-    
+
     // Ordenar por fecha (más cercanos primero)
     eventosTemp.sort((a, b) => a.fecha.compareTo(b.fecha));
-    
+
     eventosFiltrados = eventosTemp;
   }
 
@@ -136,6 +165,8 @@ class _HomeState extends State<Home> {
           return IdiomaService.traducir('ferias', _idioma);
         case TipoEvento.CONFERENCIA:
           return IdiomaService.traducir('conferencias', _idioma);
+        case TipoEvento.GENERAL: // ¡Este era el caso faltante!
+          return IdiomaService.traducir('todos_eventos', _idioma);
       }
     }
     return IdiomaService.traducir('todos_eventos', _idioma);
@@ -147,7 +178,10 @@ class _HomeState extends State<Home> {
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.withOpacity(0.1), Colors.lightBlue.withOpacity(0.05)],
+            colors: [
+              Colors.blue.withOpacity(0.1),
+              Colors.lightBlue.withOpacity(0.05)
+            ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
@@ -162,7 +196,10 @@ class _HomeState extends State<Home> {
             Expanded(
               child: Text(
                 '${IdiomaService.traducir('filtros', _idioma)}: ${_obtenerSubtitulo()}${_buscando && _controladorBusqueda.text.isNotEmpty ? ' + "${_controladorBusqueda.text}"' : ''}',
-                style: TextStyle(color: Colors.blue, fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500),
               ),
             ),
             TextButton(
@@ -231,9 +268,9 @@ class _HomeState extends State<Home> {
               ),
               SizedBox(height: 12),
               Text(
-                _buscando || filtroActual != null 
-                  ? IdiomaService.traducir('intenta_otros_filtros', _idioma)
-                  : IdiomaService.traducir('agrega_primer_evento', _idioma),
+                _buscando || filtroActual != null
+                    ? IdiomaService.traducir('intenta_otros_filtros', _idioma)
+                    : IdiomaService.traducir('agrega_primer_evento', _idioma),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[500],
@@ -241,16 +278,18 @@ class _HomeState extends State<Home> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20),
-              if (filtroActual != null || _buscando) 
+              if (filtroActual != null || _buscando)
                 ElevatedButton.icon(
                   onPressed: _limpiarFiltros,
                   icon: Icon(Icons.clear_all, size: 18),
-                  label: Text(IdiomaService.traducir('limpiar_filtros', _idioma)),
+                  label:
+                      Text(IdiomaService.traducir('limpiar_filtros', _idioma)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25)),
                   ),
                 ),
             ],
@@ -368,7 +407,7 @@ class _HomeState extends State<Home> {
     required TipoEvento? tipo,
   }) {
     final bool seleccionado = filtroActual == tipo;
-    
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
@@ -391,7 +430,8 @@ class _HomeState extends State<Home> {
             color: seleccionado ? color : Colors.grey[700],
           ),
         ),
-        trailing: seleccionado ? Icon(Icons.check, color: color, size: 20) : null,
+        trailing:
+            seleccionado ? Icon(Icons.check, color: color, size: 20) : null,
         onTap: () => _aplicarFiltro(tipo),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         tileColor: seleccionado ? color.withOpacity(0.05) : null,
@@ -403,7 +443,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _buscando 
+        title: _buscando
             ? TextField(
                 controller: _controladorBusqueda,
                 decoration: InputDecoration(
@@ -502,14 +542,14 @@ class _HomeState extends State<Home> {
             context,
             MaterialPageRoute(builder: (context) => NuevoEvento()),
           );
-          
+
           if (resultado != null && resultado is Evento) {
             setState(() {
               eventos.insert(0, resultado);
               AlmacenamientoService.guardarEventos(eventos);
               _aplicarFiltros();
             });
-            
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
@@ -522,7 +562,8 @@ class _HomeState extends State<Home> {
                 backgroundColor: Colors.green,
                 duration: Duration(seconds: 3),
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
             );
           }

@@ -1,9 +1,7 @@
-// main.dart (versión corregida)
 import 'package:flutter/material.dart';
 import 'pantallas/splash_screen.dart';
 import 'servicios/tema_service.dart';
 import 'servicios/idioma_service.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final modoOscuro = await TemaService.esModoOscuro();

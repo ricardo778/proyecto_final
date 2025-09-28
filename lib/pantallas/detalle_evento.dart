@@ -4,7 +4,7 @@ import '../modelos/evento.dart';
 class DetalleEvento extends StatelessWidget {
   final Evento evento;
 
-  const DetalleEvento({required this.evento});
+  const DetalleEvento({Key? key, required this.evento}) : super(key: key);
 
   String _obtenerNombreTipo(TipoEvento tipo) {
     switch (tipo) {
@@ -14,6 +14,9 @@ class DetalleEvento extends StatelessWidget {
         return 'Feria';
       case TipoEvento.CONFERENCIA:
         return 'Conferencia';
+      case TipoEvento.GENERAL:
+      default:
+        return 'General';
     }
   }
 
@@ -25,10 +28,10 @@ class DetalleEvento extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalle del Evento'),
+        title: const Text('Detalle del Evento'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -38,75 +41,79 @@ class DetalleEvento extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(
-                  image: NetworkImage(evento.imagenUrl),
+                image: const DecorationImage(
+                  image: NetworkImage(
+                    'https://via.placeholder.com/400x200.png?text=Sin+Imagen',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            
+
+            const SizedBox(height: 20),
+
             // Título
             Text(
-              evento.titulo,
-              style: TextStyle(
+              evento.nombre,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
-            
+            const SizedBox(height: 10),
+
             // Tipo de evento
             Row(
               children: [
-                Icon(Icons.category, color: Colors.grey),
-                SizedBox(width: 8),
+                const Icon(Icons.category, color: Colors.grey),
+                const SizedBox(width: 8),
                 Text(
                   _obtenerNombreTipo(evento.tipo),
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               ],
             ),
-            SizedBox(height: 15),
-            
+
+            const SizedBox(height: 15),
+
             // Fecha y hora
             Row(
               children: [
-                Icon(Icons.calendar_today, color: Colors.grey),
-                SizedBox(width: 8),
+                const Icon(Icons.calendar_today, color: Colors.grey),
+                const SizedBox(width: 8),
                 Text(
                   _formatearFecha(evento.fecha),
-                  style: TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16),
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            
+            const SizedBox(height: 10),
+
             // Ubicación
             Row(
               children: [
-                Icon(Icons.location_on, color: Colors.grey),
-                SizedBox(width: 8),
+                const Icon(Icons.location_on, color: Colors.grey),
+                const SizedBox(width: 8),
                 Text(
                   evento.ubicacion,
-                  style: TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16),
                 ),
               ],
             ),
-            SizedBox(height: 20),
-            
+            const SizedBox(height: 20),
+
             // Descripción
-            Text(
+            const Text(
               'Descripción:',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               evento.descripcion,
-              style: TextStyle(fontSize: 16, height: 1.5),
+              style: const TextStyle(fontSize: 16, height: 1.5),
             ),
           ],
         ),
