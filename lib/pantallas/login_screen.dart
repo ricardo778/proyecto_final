@@ -269,32 +269,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 const SizedBox(height: 30),
-
-                // Información de demo para API real
-                Card(
-                  color: Colors.blue[50],
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Para probar:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Usa cualquier email válido y contraseña de al menos 3 caracteres',
-                          textAlign: TextAlign.center,
-                          style:
-                              TextStyle(color: Colors.blue[700], fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
