@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   static const String baseUrl = 'http://localhost:8000';
 
-  // ========== FUNCIONES DE TOKEN ==========
+  // ========== FUNCIONES DE TOKEN Y USUARIO ==========
   static Future<void> guardarToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
@@ -16,9 +16,24 @@ class AuthService {
     return prefs.getString('auth_token');
   }
 
+  static Future<void> guardarUsuario(Map<String, dynamic> usuario) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('usuario_data', json.encode(usuario));
+  }
+
+  static Future<Map<String, dynamic>?> obtenerUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    final usuarioJson = prefs.getString('usuario_data');
+    if (usuarioJson != null) {
+      return json.decode(usuarioJson);
+    }
+    return null;
+  }
+
   static Future<void> eliminarToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('usuario_data'); // También eliminar datos del usuario
   }
 
   static Future<bool> estaLogueado() async {
@@ -53,8 +68,9 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         
-        // ✅ GUARDAR TOKEN QUE VIENE EN LA RESPUESTA
+        // ✅ GUARDAR TOKEN Y USUARIO
         await guardarToken(data['token']);
+        await guardarUsuario(data['usuario']);
         
         return {
           'success': true,
@@ -100,8 +116,9 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         
-        // Guardar el token
+        // ✅ GUARDAR TOKEN Y USUARIO
         await guardarToken(data['token']);
+        await guardarUsuario(data['usuario']);
         
         return {
           'success': true,
@@ -141,6 +158,8 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        // ✅ ACTUALIZAR DATOS DEL USUARIO
+        await guardarUsuario(data);
         return {
           'success': true,
           'message': 'Token válido',
@@ -164,15 +183,5 @@ class AuthService {
 
   static Future<void> logout() async {
     await eliminarToken();
-  }
-
-  // Función para probar conexión
-  static Future<void> probarConexion() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/'));
-      print('✅ Conexión exitosa: ${response.statusCode}');
-    } catch (e) {
-      print('❌ Error de conexión: $e');
-    }
   }
 }

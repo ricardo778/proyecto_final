@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../servicios/auth_service.dart';
 import 'login_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -7,13 +8,15 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderStateMixin {
-  final _nombreController = TextEditingController(text: 'Juan Pérez');
-  final _emailController = TextEditingController(text: 'juan@example.com');
-  final _telefonoController = TextEditingController(text: '+1234567890');
+  final _nombreController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _telefonoController = TextEditingController();
   
   bool _editando = false;
+  bool _cargando = true;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  Map<String, dynamic>? _usuario;
 
   @override
   void initState() {
@@ -25,6 +28,46 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
+    _cargarDatosUsuario();
+  }
+
+  void _cargarDatosUsuario() async {
+    try {
+      // ✅ CARGAR DATOS DEL USUARIO DESDE SHARED_PREFERENCES
+      final usuario = await AuthService.obtenerUsuario();
+      
+      if (usuario != null) {
+        setState(() {
+          _usuario = usuario;
+          _nombreController.text = usuario['nombre'] ?? '';
+          _emailController.text = usuario['email'] ?? '';
+          _telefonoController.text = usuario['telefono'] ?? '';
+          _cargando = false;
+        });
+        print('✅ Datos de usuario cargados: $usuario');
+      } else {
+        // Si no hay datos locales, verificar token
+        final resultado = await AuthService.verificarToken();
+        if (resultado['success'] == true) {
+          setState(() {
+            _usuario = resultado['usuario'];
+            _nombreController.text = resultado['usuario']['nombre'] ?? '';
+            _emailController.text = resultado['usuario']['email'] ?? '';
+            _telefonoController.text = resultado['usuario']['telefono'] ?? '';
+            _cargando = false;
+          });
+        } else {
+          setState(() {
+            _cargando = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('❌ Error cargando datos del usuario: $e');
+      setState(() {
+        _cargando = false;
+      });
+    }
   }
 
   @override
@@ -41,22 +84,43 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
       _editando = !_editando;
       if (!_editando) {
         // Guardar cambios
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.save, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Perfil actualizado exitosamente'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        _guardarCambios();
       }
     });
+  }
+
+  void _guardarCambios() async {
+    try {
+      // Aquí puedes agregar la lógica para actualizar el perfil en la API
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.save, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Perfil actualizado exitosamente'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      
+      // ✅ ACTUALIZAR DATOS LOCALES
+      if (_usuario != null) {
+        _usuario!['nombre'] = _nombreController.text;
+        _usuario!['telefono'] = _telefonoController.text;
+        await AuthService.guardarUsuario(_usuario!);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al guardar cambios: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _cerrarSesion() {
@@ -80,6 +144,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
+              AuthService.logout();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -148,7 +213,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                             ),
                           )
                         : Text(
-                            valor,
+                            valor.isNotEmpty ? valor : 'No especificado',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -167,6 +232,27 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    if (_cargando) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          title: Text('Mi Perfil'),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 20),
+              Text('Cargando perfil...'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -255,7 +341,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                   ),
                   SizedBox(height: 20),
                   Text(
-                    _nombreController.text,
+                    _nombreController.text.isNotEmpty ? _nombreController.text : 'Usuario',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -264,7 +350,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                   ),
                   SizedBox(height: 4),
                   Text(
-                    _emailController.text,
+                    _emailController.text.isNotEmpty ? _emailController.text : 'email@ejemplo.com',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 16,
