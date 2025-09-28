@@ -1,4 +1,3 @@
-// servicios/auth_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,6 +34,8 @@ class AuthService {
     String? telefono,
   }) async {
     try {
+      print('📝 Intentando registrar usuario: $email');
+      
       final response = await http.post(
         Uri.parse('$baseUrl/auth/registro'),
         headers: {'Content-Type': 'application/json'},
@@ -46,11 +47,20 @@ class AuthService {
         }),
       );
 
+      print('📝 Register Response Status: ${response.statusCode}');
+      print('📝 Register Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        
+        // ✅ GUARDAR TOKEN QUE VIENE EN LA RESPUESTA
+        await guardarToken(data['token']);
+        
         return {
           'success': true,
           'message': 'Usuario registrado exitosamente',
-          'data': json.decode(response.body),
+          'token': data['token'],
+          'usuario': data['usuario'],
         };
       } else {
         final error = json.decode(response.body);
@@ -60,6 +70,7 @@ class AuthService {
         };
       }
     } catch (e) {
+      print('❌ Error en registro: $e');
       return {
         'success': false,
         'message': 'Error de conexión: $e',
@@ -72,6 +83,8 @@ class AuthService {
     required String password,
   }) async {
     try {
+      print('🔐 Intentando login para: $email');
+      
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -80,6 +93,9 @@ class AuthService {
           'password': password,
         }),
       );
+
+      print('📡 Login Response Status: ${response.statusCode}');
+      print('📡 Login Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -90,7 +106,8 @@ class AuthService {
         return {
           'success': true,
           'message': 'Login exitoso',
-          'data': data,
+          'token': data['token'],
+          'usuario': data['usuario'],
         };
       } else {
         final error = json.decode(response.body);
@@ -100,6 +117,7 @@ class AuthService {
         };
       }
     } catch (e) {
+      print('❌ Error en login: $e');
       return {
         'success': false,
         'message': 'Error de conexión: $e',
@@ -118,17 +136,22 @@ class AuthService {
         Uri.parse('$baseUrl/auth/verificar?token=$token'),
       );
 
+      print('🔍 Verificar Token Status: ${response.statusCode}');
+      print('🔍 Verificar Token Body: ${response.body}');
+
       if (response.statusCode == 200) {
+        final data = json.decode(response.body);
         return {
           'success': true,
           'message': 'Token válido',
-          'data': json.decode(response.body),
+          'usuario': data,
         };
       } else {
         await eliminarToken();
+        final error = json.decode(response.body);
         return {
           'success': false,
-          'message': 'Token inválido',
+          'message': error['detail'] ?? 'Token inválido',
         };
       }
     } catch (e) {
@@ -141,5 +164,15 @@ class AuthService {
 
   static Future<void> logout() async {
     await eliminarToken();
+  }
+
+  // Función para probar conexión
+  static Future<void> probarConexion() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/'));
+      print('✅ Conexión exitosa: ${response.statusCode}');
+    } catch (e) {
+      print('❌ Error de conexión: $e');
+    }
   }
 }

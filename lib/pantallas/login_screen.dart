@@ -53,16 +53,56 @@ class _LoginScreenState extends State<LoginScreen> {
       _cargando = true;
     });
 
-    // Navegar directamente a la pantalla principal
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-          builder: (context) => Home()),
-    );
+    try {
+      print('📡 Enviando credenciales al servidor...');
 
-    setState(() {
-      _cargando = false;
-    });
+      // Llamar al servicio de autenticación real
+      final resultado = await AuthService.login(
+        email: _emailController.text.trim(),
+        password: _contrasenaController.text,
+      );
+
+      if (resultado['success'] == true) {
+        // ✅ Login exitoso
+        print('✅ Login exitoso!');
+        print('🔑 Token: ${resultado['token']}');
+        print('👤 Usuario: ${resultado['usuario']}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultado['message'] ?? '¡Login exitoso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navegar a la pantalla principal
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Home()),
+        );
+      } else {
+        // ❌ Login fallido
+        print('❌ Error en login: ${resultado['message']}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultado['message'] ?? 'Error en el login'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ ERROR en login: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error de conexión: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _cargando = false;
+      });
+    }
   }
 
   void _irARegistro() {
@@ -174,24 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 const SizedBox(height: 10),
-
-                // Olvidé mi contraseña
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Función en desarrollo'),
-                          backgroundColor: Colors.blue,
-                        ),
-                      );
-                    },
-                    child: const Text('¿Olvidaste tu contraseña?'),
-                  ),
-                ),
-
-                const SizedBox(height: 30),
 
                 // Botón de login
                 _cargando

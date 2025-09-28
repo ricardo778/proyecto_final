@@ -54,7 +54,7 @@ def crear_token(usuario_id: int, email: str):
     return jwt.encode(payload, JWT_SECRET, algorithm=ALGORITHM)
 
 # Endpoints
-@router.post("/registro", response_model=UsuarioResponse)
+@router.post("/registro", response_model=LoginResponse)  # ✅ CAMBIADO A LoginResponse
 def registrar_usuario(usuario_data: RegistroRequest, db: Session = Depends(get_db)):
     # Verificar si el email ya existe
     usuario_existente = db.query(Usuario).filter(Usuario.email == usuario_data.email).first()
@@ -77,11 +77,17 @@ def registrar_usuario(usuario_data: RegistroRequest, db: Session = Depends(get_d
     db.commit()
     db.refresh(nuevo_usuario)
     
-    return UsuarioResponse(
-        id=nuevo_usuario.id,
-        nombre=nuevo_usuario.nombre,
-        email=nuevo_usuario.email,
-        telefono=nuevo_usuario.telefono
+    # ✅ GENERAR TOKEN AUTOMÁTICAMENTE después del registro
+    token = crear_token(nuevo_usuario.id, nuevo_usuario.email)
+    
+    return LoginResponse(
+        token=token,
+        usuario=UsuarioResponse(
+            id=nuevo_usuario.id,
+            nombre=nuevo_usuario.nombre,
+            email=nuevo_usuario.email,
+            telefono=nuevo_usuario.telefono
+        )
     )
 
 @router.post("/login", response_model=LoginResponse)
