@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 enum TipoEvento { GENERAL, CONCIERTO, FERIA, CONFERENCIA }
 
 class Evento {
@@ -51,6 +52,32 @@ class Evento {
       fecha: fechaEvento,
       tipo: tipoEvento,
     );
+  }
+
+  // ✅ AGREGAR ESTE MÉTODO toJson()
+  Map<String, dynamic> toJson() {
+    return {
+      'nombre': nombre,
+      'descripcion': descripcion,
+      'ubicacion': ubicacion,
+      'fecha': fecha.toIso8601String(),
+      'tipo': _tipoToString(tipo),
+    };
+  }
+
+  // ✅ Método auxiliar para convertir TipoEvento a String
+  static String _tipoToString(TipoEvento tipo) {
+    switch (tipo) {
+      case TipoEvento.CONCIERTO:
+        return 'CONCIERTO';
+      case TipoEvento.FERIA:
+        return 'FERIA';
+      case TipoEvento.CONFERENCIA:
+        return 'CONFERENCIA';
+      case TipoEvento.GENERAL:
+      default:
+        return 'GENERAL';
+    }
   }
 }
 

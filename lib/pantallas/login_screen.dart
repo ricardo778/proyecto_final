@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../servicios/auth_service.dart';
 import 'home.dart';
 import 'registro_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -15,41 +17,52 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _cargando = false;
   bool _ocultarPassword = true;
 
-  void _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _cargando = true);
-      
-      // ✅ USAR LA API REAL en lugar de autenticación simulada
-      final resultado = await AuthService.login(
-        email: _emailController.text,
-        password: _contrasenaController.text,
+  void _probarConexionReal() async {
+    print('🎯 PROBANDO CONEXIÓN REAL...');
+
+    try {
+      final response = await http.get(Uri.parse('http://localhost:8000/'));
+
+      print('✅ ¡CONEXIÓN EXITOSA!');
+      print('📡 Status: ${response.statusCode}');
+      print('📦 Body: ${response.body}');
+
+      // Si esto funciona, el problema está en el endpoint /auth/login
+      print('🔐 Probando endpoint de login...');
+
+      final loginTest = await http.post(
+        Uri.parse('http://localhost:8000/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': 'ana@test.com', 'password': '123456'}),
       );
 
-      setState(() => _cargando = false);
-
-      if (resultado['success']) {
-        // ✅ Login exitoso con API real
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Home()),
-        );
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('¡Bienvenido/a!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        // ✅ Error en login con API real
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(resultado['message']),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      print('📡 Login Status: ${loginTest.statusCode}');
+      print('📦 Login Response: ${loginTest.body}');
+    } catch (e) {
+      print('❌ ERROR: $e');
     }
+  }
+
+  void _login() async {
+    // Validar que el formulario esté correcto
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _cargando = true;
+    });
+
+    // Navegar directamente a la pantalla principal
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => Home()),
+    );
+
+    setState(() {
+      _cargando = false;
+    });
   }
 
   void _irARegistro() {
@@ -59,23 +72,30 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // En initState:
+  @override
+  void initState() {
+    super.initState();
+    _probarConexionReal();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: 40),
-                
+                const SizedBox(height: 40),
+
                 // Logo y título
-                Icon(Icons.event, size: 80, color: Colors.blue),
-                SizedBox(height: 20),
-                Text(
+                const Icon(Icons.event, size: 80, color: Colors.blue),
+                const SizedBox(height: 20),
+                const Text(
                   'EventAgenda',
                   style: TextStyle(
                     fontSize: 32,
@@ -83,23 +103,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.blue,
                   ),
                 ),
-                Text(
+                const Text(
                   'Inicia sesión en tu cuenta',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
-                
-                SizedBox(height: 40),
-                
-                // ✅ CAMBIO: Campo de EMAIL (no usuario)
+
+                const SizedBox(height: 40),
+
+                // Campo de EMAIL
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
+                    prefixIcon: const Icon(Icons.email),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 15),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -112,19 +133,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                
-                SizedBox(height: 20),
-                
+
+                const SizedBox(height: 20),
+
                 // Campo de contraseña
                 TextFormField(
                   controller: _contrasenaController,
                   obscureText: _ocultarPassword,
                   decoration: InputDecoration(
                     labelText: 'Contraseña',
-                    prefixIcon: Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _ocultarPassword ? Icons.visibility : Icons.visibility_off,
+                        _ocultarPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: Colors.grey,
                       ),
                       onPressed: () {
@@ -136,7 +159,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 15),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -148,9 +172,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                
-                SizedBox(height: 10),
-                
+
+                const SizedBox(height: 10),
+
                 // Olvidé mi contraseña
                 Align(
                   alignment: Alignment.centerRight,
@@ -158,76 +182,77 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Función en desarrollo'),
+                          content: const Text('Función en desarrollo'),
                           backgroundColor: Colors.blue,
                         ),
                       );
                     },
-                    child: Text('¿Olvidaste tu contraseña?'),
+                    child: const Text('¿Olvidaste tu contraseña?'),
                   ),
                 ),
-                
-                SizedBox(height: 30),
-                
+
+                const SizedBox(height: 30),
+
                 // Botón de login
-                _cargando 
-                    ? CircularProgressIndicator()
+                _cargando
+                    ? const CircularProgressIndicator()
                     : ElevatedButton(
                         onPressed: _login,
-                        child: Text(
-                          'Iniciar Sesión',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
-                          minimumSize: Size(double.infinity, 55),
+                          minimumSize: const Size(double.infinity, 55),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 3,
                         ),
+                        child: const Text(
+                          'Iniciar Sesión',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                
-                SizedBox(height: 20),
-                
+
+                const SizedBox(height: 20),
+
                 // Divider
                 Row(
                   children: [
-                    Expanded(child: Divider()),
+                    const Expanded(child: Divider()),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
                       child: Text('O', style: TextStyle(color: Colors.grey)),
                     ),
-                    Expanded(child: Divider()),
+                    const Expanded(child: Divider()),
                   ],
                 ),
-                
-                SizedBox(height: 20),
-                
+
+                const SizedBox(height: 20),
+
                 // Botón de registro
                 OutlinedButton(
                   onPressed: _irARegistro,
-                  child: Text(
+                  child: const Text(
                     'Crear Nueva Cuenta',
                     style: TextStyle(fontSize: 16),
                   ),
                   style: OutlinedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 55),
+                    minimumSize: const Size(double.infinity, 55),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    side: BorderSide(color: Colors.blue),
+                    side: const BorderSide(color: Colors.blue),
                   ),
                 ),
-                
-                SizedBox(height: 30),
-                
-                // ✅ ACTUALIZAR: Información de demo para API real
+
+                const SizedBox(height: 30),
+
+                // Información de demo para API real
                 Card(
                   color: Colors.blue[50],
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Text(
@@ -237,11 +262,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.blue[800],
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          '1. Registra un usuario nuevo\n2. O usa cualquier email/contraseña válidos',
+                          'Usa cualquier email válido y contraseña de al menos 3 caracteres',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.blue[700], fontSize: 12),
+                          style:
+                              TextStyle(color: Colors.blue[700], fontSize: 12),
                         ),
                       ],
                     ),

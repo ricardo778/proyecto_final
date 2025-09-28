@@ -219,37 +219,6 @@ class DrawerPersonalizado extends StatelessWidget {
                   child: Divider(),
                 ),
 
-                // Eventos Favoritos
-                ListTile(
-                  leading: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.favorite, color: Colors.purple, size: 22),
-                  ),
-                  title: Text(
-                    'Eventos Favoritos',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Próximamente: Eventos Favoritos'),
-                        backgroundColor: Colors.purple,
-                      ),
-                    );
-                  },
-                ),
-
-                // Divider
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Divider(),
-                ),
-
                 // Acerca de
                 ListTile(
                   leading: Container(

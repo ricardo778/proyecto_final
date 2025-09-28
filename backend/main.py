@@ -4,7 +4,6 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
-# ✅ IMPORTAR LA AUTENTICACIÓN
 from router.modelo import crear_tablas
 from router import auth
 EVENTYAY_API_URL = "https://api.eventyay.com/v1/events"
@@ -17,10 +16,10 @@ app = FastAPI(
 # ✅ CONFIGURAR CORS (ya lo tienes)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   
+    allow_origins=["*"],  # Permitir TODOS los orígenes
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Permitir TODOS los métodos
+    allow_headers=["*"],  # Permitir TODOS los headers
 )
 
 # ✅ CREAR TABLAS AL INICIAR
@@ -147,4 +146,4 @@ def health_check():
     return {"status": "healthy", "servicios": ["eventos", "autenticacion"]}
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True) 

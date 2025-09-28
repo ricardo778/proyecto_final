@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'login_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -14,8 +12,6 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
   final _telefonoController = TextEditingController(text: '+1234567890');
   
   bool _editando = false;
-  File? _imagenPerfil;
-  final ImagePicker _picker = ImagePicker();
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -38,147 +34,6 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
     _emailController.dispose();
     _telefonoController.dispose();
     super.dispose();
-  }
-
-  Future<void> _seleccionarImagen() async {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Seleccionar foto de perfil',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildOpcionImagen(
-                    icono: Icons.camera_alt,
-                    texto: 'Cámara',
-                    color: Colors.blue,
-                    onTap: () => _tomarFoto(ImageSource.camera),
-                  ),
-                  _buildOpcionImagen(
-                    icono: Icons.photo_library,
-                    texto: 'Galería',
-                    color: Colors.green,
-                    onTap: () => _tomarFoto(ImageSource.gallery),
-                  ),
-                  if (_imagenPerfil != null)
-                    _buildOpcionImagen(
-                      icono: Icons.delete,
-                      texto: 'Eliminar',
-                      color: Colors.red,
-                      onTap: _eliminarFoto,
-                    ),
-                ],
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildOpcionImagen({
-    required IconData icono,
-    required String texto,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icono, color: color, size: 30),
-          ),
-          SizedBox(height: 8),
-          Text(texto, style: TextStyle(fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _tomarFoto(ImageSource source) async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        maxWidth: 500,
-        maxHeight: 500,
-        imageQuality: 80,
-      );
-      
-      if (image != null) {
-        setState(() {
-          _imagenPerfil = File(image.path);
-        });
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Foto de perfil actualizada'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-      }
-    } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al seleccionar imagen: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _eliminarFoto() {
-    setState(() {
-      _imagenPerfil = null;
-    });
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Foto de perfil eliminada'),
-        backgroundColor: Colors.orange,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
   }
 
   void _toggleEditar() {
@@ -310,73 +165,6 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildEstadisticas() {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 16),
-      child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.bar_chart, color: Colors.blue, size: 24),
-                  SizedBox(width: 8),
-                  Text(
-                    'Estadísticas',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue.withOpacity(0.1), Colors.lightBlue.withOpacity(0.05)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.event, size: 40, color: Colors.blue),
-                    SizedBox(height: 12),
-                    Text(
-                      '12',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Eventos Creados',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -420,7 +208,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            // Avatar y información básica
+            // Sección de foto de perfil
             Container(
               padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -436,68 +224,34 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
               ),
               child: Column(
                 children: [
-                  Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: _seleccionarImagen,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blue.withOpacity(0.3),
-                                blurRadius: 20,
-                                offset: Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.blue,
-                            backgroundImage: _imagenPerfil != null ? FileImage(_imagenPerfil!) : null,
-                            child: _imagenPerfil == null
-                                ? Text(
-                                    _nombreController.text.isNotEmpty 
-                                        ? _nombreController.text.substring(0, 1).toUpperCase()
-                                        : 'U',
-                                    style: TextStyle(
-                                      fontSize: 40,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                : null,
-                          ),
-                        ),
+                  // Foto de perfil fija
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Colors.blue, Colors.lightBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: _seleccionarImagen,
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 6,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: Offset(0, 8),
                         ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.transparent,
+                      child: Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Colors.white,
                       ),
-                    ],
+                    ),
                   ),
                   SizedBox(height: 20),
                   Text(
@@ -517,7 +271,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                     ),
                   ),
                   SizedBox(height: 20),
-                  // Botón editar mejorado
+                  // Botón editar
                   AnimatedBuilder(
                     animation: _scaleAnimation,
                     builder: (context, child) {
@@ -569,8 +323,8 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
             _buildInfoItem('Email', _emailController.text, Icons.email, _emailController),
             _buildInfoItem('Teléfono', _telefonoController.text, Icons.phone, _telefonoController),
             
-            // Estadísticas
-            _buildEstadisticas(),
+            // Espacio adicional al final
+            SizedBox(height: 30),
           ],
         ),
       ),
