@@ -50,7 +50,7 @@ class AuthService {
   }) async {
     try {
       print('📝 Intentando registrar usuario: $email');
-      
+
       final response = await http.post(
         Uri.parse('$baseUrl/auth/registro'),
         headers: {'Content-Type': 'application/json'},
@@ -67,11 +67,11 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // ✅ GUARDAR TOKEN Y USUARIO
         await guardarToken(data['token']);
         await guardarUsuario(data['usuario']);
-        
+
         return {
           'success': true,
           'message': 'Usuario registrado exitosamente',
@@ -100,7 +100,7 @@ class AuthService {
   }) async {
     try {
       print('🔐 Intentando login para: $email');
-      
+
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -115,11 +115,11 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // ✅ GUARDAR TOKEN Y USUARIO
         await guardarToken(data['token']);
         await guardarUsuario(data['usuario']);
-        
+
         return {
           'success': true,
           'message': 'Login exitoso',
@@ -183,5 +183,107 @@ class AuthService {
 
   static Future<void> logout() async {
     await eliminarToken();
+  }
+
+  // Agrega esta función en AuthService
+  // Actualiza la función existente y agrega la nueva
+  static Future<Map<String, dynamic>> actualizarPerfil({
+    required String nombre,
+    required String email,
+    required String telefono,
+  }) async {
+    try {
+      final token = await obtenerToken();
+      if (token == null) {
+        return {'success': false, 'message': 'No hay sesión activa'};
+      }
+
+      print('📝 Actualizando perfil...');
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/auth/usuario/actualizar?token=$token'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'nombre': nombre,
+          'email': email,
+          'telefono': telefono,
+        }),
+      );
+
+      print('📝 Actualizar Perfil Status: ${response.statusCode}');
+      print('📝 Actualizar Perfil Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // ✅ ACTUALIZAR DATOS LOCALES
+        await guardarUsuario(data);
+
+        return {
+          'success': true,
+          'message': 'Perfil actualizado exitosamente',
+          'usuario': data,
+        };
+      } else {
+        final error = json.decode(response.body);
+        return {
+          'success': false,
+          'message': error['detail'] ?? 'Error al actualizar el perfil',
+        };
+      }
+    } catch (e) {
+      print('❌ Error al actualizar perfil: $e');
+      return {
+        'success': false,
+        'message': 'Error de conexión: $e',
+      };
+    }
+  }
+
+// Nueva función para cambiar contraseña
+  static Future<Map<String, dynamic>> cambiarPassword({
+    required String passwordActual,
+    required String nuevoPassword,
+  }) async {
+    try {
+      final token = await obtenerToken();
+      if (token == null) {
+        return {'success': false, 'message': 'No hay sesión activa'};
+      }
+
+      print('🔐 Cambiando contraseña...');
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/auth/usuario/cambiar-password?token=$token'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'password_actual': passwordActual,
+          'nuevo_password': nuevoPassword,
+        }),
+      );
+
+      print('🔐 Cambiar Password Status: ${response.statusCode}');
+      print('🔐 Cambiar Password Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Contraseña actualizada exitosamente',
+        };
+      } else {
+        final error = json.decode(response.body);
+        return {
+          'success': false,
+          'message': error['detail'] ?? 'Error al cambiar la contraseña',
+        };
+      }
+    } catch (e) {
+      print('❌ Error al cambiar contraseña: $e');
+      return {
+        'success': false,
+        'message': 'Error de conexión: $e',
+      };
+    }
   }
 }
