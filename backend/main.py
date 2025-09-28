@@ -1,18 +1,38 @@
 import os
 import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
-
+# ✅ IMPORTAR LA AUTENTICACIÓN
+from router.modelo import crear_tablas
+from router import auth
 EVENTYAY_API_URL = "https://api.eventyay.com/v1/events"
 
 app = FastAPI(
-    title="API de Eventos",
-    description="API para obtener eventos de Eventyay con campos simplificados.",
+    title="API de Eventos y Autenticación",
+    description="API para eventos de Eventyay + sistema de autenticación",
 )
 
+# ✅ CONFIGURAR CORS (ya lo tienes)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# ✅ CREAR TABLAS AL INICIAR
+@app.on_event("startup")
+def on_startup():
+    crear_tablas()
+    print("✅ Base de datos de autenticación inicializada")
+
+# ✅ INCLUIR ROUTER DE AUTENTICACIÓN
+app.include_router(auth.router)
+
+# ✅ TUS MODELOS ORIGINALES DE EVENTOS
 class Ubicacion(BaseModel):
     """Modelo para la ubicación del evento."""
     nombre_lugar: Optional[str] = "No especificado"
@@ -28,7 +48,7 @@ class EventoDetalle(BaseModel):
     ubicacion: Ubicacion
     descripcion_corta: Optional[str] 
 
-
+# ✅ TU FUNCIÓN ORIGINAL DE MAPEO
 def _mapear_evento_eventyay(raw_event: Dict[str, Any]) -> EventoDetalle:
     """Mapea la respuesta de Eventyay (JSON:API format) a nuestro modelo simple."""
     
@@ -70,6 +90,7 @@ def _mapear_evento_eventyay(raw_event: Dict[str, Any]) -> EventoDetalle:
         descripcion_corta=descripcion_corta,
     )
 
+# ✅ TU ENDPOINT ORIGINAL DE EVENTOS
 @app.get("/api/v1/eventos", response_model=List[EventoDetalle])
 async def obtener_eventos(search_query: Optional[str] = None):
     """
@@ -109,10 +130,21 @@ async def obtener_eventos(search_query: Optional[str] = None):
             status_code=503,
             detail="Error al obtener datos del servicio externo (Eventyay).",
         )
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],   
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# ✅ ENDPOINTS ADICIONALES PARA VERIFICAR ESTADO
+@app.get("/")
+def root():
+    return {
+        "message": "EventAgenda API funcionando", 
+        "servicios": {
+            "eventos": "Disponible en /api/v1/eventos",
+            "autenticacion": "Disponible en /auth/registro y /auth/login"
+        }
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "servicios": ["eventos", "autenticacion"]}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../servicios/auth_service.dart';
 import 'home.dart';
 import 'registro_screen.dart';
 
@@ -9,33 +10,45 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usuarioController = TextEditingController();
+  final _emailController = TextEditingController();
   final _contrasenaController = TextEditingController();
   bool _cargando = false;
   bool _ocultarPassword = true;
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _cargando = true);
       
-      // Autenticación simulada
-      Future.delayed(Duration(seconds: 1), () {
-        if (_usuarioController.text == 'admin' && 
-            _contrasenaController.text == '123') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Home()),
-          );
-        } else {
-          setState(() => _cargando = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Usuario o contraseña incorrectos'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      });
+      // ✅ USAR LA API REAL en lugar de autenticación simulada
+      final resultado = await AuthService.login(
+        email: _emailController.text,
+        password: _contrasenaController.text,
+      );
+
+      setState(() => _cargando = false);
+
+      if (resultado['success']) {
+        // ✅ Login exitoso con API real
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Home()),
+        );
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('¡Bienvenido/a!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // ✅ Error en login con API real
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultado['message']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -77,20 +90,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 SizedBox(height: 40),
                 
-                // Campo de usuario
+                // ✅ CAMBIO: Campo de EMAIL (no usuario)
                 TextFormField(
-                  controller: _usuarioController,
+                  controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Usuario o Email',
-                    prefixIcon: Icon(Icons.person),
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                   ),
+                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu usuario o email';
+                      return 'Por favor ingresa tu email';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Ingresa un email válido';
                     }
                     return null;
                   },
@@ -206,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 SizedBox(height: 30),
                 
-                // Información de demo
+                // ✅ ACTUALIZAR: Información de demo para API real
                 Card(
                   color: Colors.blue[50],
                   child: Padding(
@@ -214,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         Text(
-                          'Credenciales de Demo',
+                          'Para probar:',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue[800],
@@ -222,9 +239,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Usuario: admin\nContraseña: 123',
+                          '1. Registra un usuario nuevo\n2. O usa cualquier email/contraseña válidos',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.blue[700]),
+                          style: TextStyle(color: Colors.blue[700], fontSize: 12),
                         ),
                       ],
                     ),
@@ -240,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _usuarioController.dispose();
+    _emailController.dispose();
     _contrasenaController.dispose();
     super.dispose();
   }
