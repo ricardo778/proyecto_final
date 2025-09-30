@@ -1,8 +1,7 @@
-// servicios/idioma_service.dart
 class IdiomaService {
   static Map<String, Map<String, String>> _traducciones = {
     'es': {
-      'inicio': 'Inicio', 
+      'inicio': 'Inicio',
       'app_title': 'Agenda de Eventos',
       'conciertos': 'Conciertos',
       'ferias': 'Ferias',

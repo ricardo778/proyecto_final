@@ -48,7 +48,6 @@ class _HomeState extends State<Home> {
   }
 
   void _inicializarApp() async {
-    // Cargar preferencias de tema e idioma
     _modoOscuro = await TemaService.esModoOscuro();
     _idioma = await TemaService.obtenerIdioma();
 
@@ -64,7 +63,11 @@ class _HomeState extends State<Home> {
         _cargando = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error cargando eventos: $e")),
+        SnackBar(
+          content: Text("Error cargando eventos: $e"),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -86,7 +89,11 @@ class _HomeState extends State<Home> {
         _cargando = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error recargando eventos: $e")),
+        SnackBar(
+          content: Text("Error recargando eventos: $e"),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -94,7 +101,6 @@ class _HomeState extends State<Home> {
   void _aplicarFiltros() {
     List<Evento> eventosTemp = List.from(eventos);
 
-    // Aplicar filtro de búsqueda
     if (_buscando && _controladorBusqueda.text.isNotEmpty) {
       final textoBusqueda = _controladorBusqueda.text.toLowerCase();
       eventosTemp = eventosTemp
@@ -105,7 +111,6 @@ class _HomeState extends State<Home> {
           .toList();
     }
 
-    // Ordenar por fecha (más cercanos primero)
     eventosTemp.sort((a, b) => a.fecha.compareTo(b.fecha));
 
     setState(() {
@@ -140,11 +145,15 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              strokeWidth: 3,
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(TemaService.colorPrimario),
+              ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               IdiomaService.traducir('cargando', _idioma),
               style: TextStyle(
@@ -161,16 +170,16 @@ class _HomeState extends State<Home> {
     if (eventosFiltrados.isEmpty) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.event_available,
+                Icons.event_available_outlined,
                 size: 80,
                 color: Colors.grey[300],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 IdiomaService.traducir('no_eventos', _idioma),
                 style: TextStyle(
@@ -180,7 +189,7 @@ class _HomeState extends State<Home> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
                 _buscando
                     ? IdiomaService.traducir('intenta_otros_filtros', _idioma)
@@ -199,10 +208,12 @@ class _HomeState extends State<Home> {
 
     return RefreshIndicator(
       onRefresh: _recargarEventos,
-      backgroundColor: Colors.blue,
+      backgroundColor: TemaService.colorPrimario,
       color: Colors.white,
-      child: ListView.builder(
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
         itemCount: eventosFiltrados.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final evento = eventosFiltrados[index];
           return TarjetaEvento(evento: evento);
@@ -214,12 +225,22 @@ class _HomeState extends State<Home> {
   Widget _construirVistaMobile() {
     return Column(
       children: [
-        // Header estilo imagen (sin filtros)
         Container(
           width: double.infinity,
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                TemaService.colorPrimario,
+                TemaService.colorSecundario.withOpacity(0.8),
+              ],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,21 +248,44 @@ class _HomeState extends State<Home> {
               Text(
                 'Agenda de Eventos',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  height: 1.2,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                'Todos los eventos disponibles',
+                'Descubre y organiza tus eventos',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.9),
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: TextField(
+                  controller: _controladorBusqueda,
+                  decoration: InputDecoration(
+                    hintText: IdiomaService.traducir('buscar_eventos', _idioma),
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.7)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  style: TextStyle(color: Colors.white),
+                  onChanged: (value) => _aplicarFiltros(),
                 ),
               ),
             ],
           ),
         ),
+        const SizedBox(height: 8),
         Expanded(child: _construirListaEventos()),
       ],
     );
@@ -250,45 +294,112 @@ class _HomeState extends State<Home> {
   Widget _construirVistaTablet() {
     return Row(
       children: [
-        // Panel lateral (sin filtros)
         Container(
-          width: 280,
+          width: 320,
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
-                blurRadius: 4,
-                offset: Offset(2, 0),
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 12,
+                offset: const Offset(2, 0),
               ),
             ],
           ),
           child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  'Agenda de Eventos',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      TemaService.colorPrimario,
+                      TemaService.colorSecundario.withOpacity(0.8),
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(24),
                   ),
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Agenda de Eventos',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Todos los eventos disponibles',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(height: 24),
               Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Todos los eventos disponibles',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: TextField(
+                        controller: _controladorBusqueda,
+                        decoration: InputDecoration(
+                          hintText: IdiomaService.traducir('buscar_eventos', _idioma),
+                          border: InputBorder.none,
+                          prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                        onChanged: (value) => _aplicarFiltros(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: TemaService.colorAcento.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: TemaService.colorAcento, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '${eventosFiltrados.length} eventos encontrados',
+                              style: TextStyle(
+                                color: const Color.fromARGB(255, 0, 0, 0),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-        // Lista de eventos
         Expanded(
           child: _construirListaEventos(),
         ),
@@ -299,41 +410,44 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _buscando
-            ? TextField(
-                controller: _controladorBusqueda,
-                decoration: InputDecoration(
-                  hintText: IdiomaService.traducir('buscar_eventos', _idioma),
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(color: Colors.white70),
-                  icon: Icon(Icons.search, color: Colors.white70),
-                ),
-                style: TextStyle(color: Colors.white, fontSize: 16),
-                autofocus: true,
-                onChanged: (value) => _aplicarFiltros(),
-              )
-            : Text(
-                IdiomaService.traducir('app_title', _idioma),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
+      appBar: _buscando ? AppBar(
+        title: TextField(
+          controller: _controladorBusqueda,
+          decoration: InputDecoration(
+            hintText: IdiomaService.traducir('buscar_eventos', _idioma),
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
+            icon: Icon(Icons.search, color: const Color.fromARGB(179, 0, 0, 0)),
+          ),
+          style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0), fontSize: 16),
+          autofocus: true,
+          onChanged: (value) => _aplicarFiltros(),
+        ),
         actions: [
-          if (!_buscando) ...[
+          IconButton(
+            icon: Icon(Icons.close),
+            onPressed: _alternarBusqueda,
+            tooltip: IdiomaService.traducir('cerrar_busqueda', _idioma),
+          ),
+        ],
+      ) : AppBar(
+        title: Text(
+          IdiomaService.traducir('app_title', _idioma),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: TemaService.colorPrimario,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          if (!_buscando) 
             IconButton(
               icon: Icon(Icons.search),
               onPressed: _alternarBusqueda,
               tooltip: IdiomaService.traducir('buscar', _idioma),
             ),
-          ] else ...[
-            IconButton(
-              icon: Icon(Icons.close),
-              onPressed: _alternarBusqueda,
-              tooltip: IdiomaService.traducir('cerrar_busqueda', _idioma),
-            ),
-          ],
         ],
       ),
       drawer: DrawerPersonalizado(
@@ -346,6 +460,14 @@ class _HomeState extends State<Home> {
         tablet: _construirVistaTablet(),
         desktop: _construirVistaTablet(),
       ),
+      floatingActionButton: !_buscando ? FloatingActionButton(
+        onPressed: _recargarEventos,
+        backgroundColor: TemaService.colorPrimario,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Icon(Icons.refresh_rounded),
+      ) : null,
     );
   }
 

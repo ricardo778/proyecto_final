@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../modelos/evento.dart';
+import '../servicios/tema_service.dart';
 
 class DetalleEvento extends StatelessWidget {
   final Evento evento;
@@ -29,6 +30,8 @@ class DetalleEvento extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalle del Evento'),
+        backgroundColor: TemaService.colorPrimario,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -40,7 +43,7 @@ class DetalleEvento extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: TemaService.colorPrimario.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -48,22 +51,22 @@ class DetalleEvento extends StatelessWidget {
                 children: [
                   Text(
                     evento.nombre,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: TemaService.colorPrimario,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.category, size: 16, color: Colors.blue[700]),
+                      Icon(Icons.category, size: 16, color: TemaService.colorPrimario),
                       const SizedBox(width: 6),
                       Text(
                         _obtenerNombreTipo(evento.tipo),
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.blue[700],
+                          color: TemaService.colorPrimario,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -78,6 +81,9 @@ class DetalleEvento extends StatelessWidget {
             // Información del evento en tarjetas
             Card(
               elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -106,17 +112,20 @@ class DetalleEvento extends StatelessWidget {
             // Descripción
             Card(
               elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Descripción',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                        color: Colors.grey[700],
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -124,7 +133,7 @@ class DetalleEvento extends StatelessWidget {
                       evento.descripcion.isEmpty 
                           ? 'Sin descripción' 
                           : evento.descripcion,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         height: 1.5,
                       ),
@@ -133,76 +142,6 @@ class DetalleEvento extends StatelessWidget {
                 ),
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // Información adicional (estilo similar a la imagen)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    evento.nombre.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _obtenerNombreTipo(evento.tipo),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatearFecha(evento.fecha),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    evento.ubicacion,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Descripción:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    evento.descripcion.isEmpty 
-                        ? 'Sin descripción' 
-                        : evento.descripcion,
-                    style: const TextStyle(
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Se eliminó el botón "Asistir"
           ],
         ),
       ),
@@ -221,7 +160,7 @@ class DetalleEvento extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey,
                   fontWeight: FontWeight.w500,
@@ -230,7 +169,7 @@ class DetalleEvento extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),

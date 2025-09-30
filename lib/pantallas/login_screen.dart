@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../servicios/auth_service.dart';
+import '../servicios/tema_service.dart';
 import 'home.dart';
 import 'registro_screen.dart';
 import 'dart:convert';
@@ -18,33 +19,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _ocultarPassword = true;
 
   void _probarConexionReal() async {
-    print('🎯 PROBANDO CONEXIÓN REAL...');
-
     try {
       final response = await http.get(Uri.parse('http://localhost:8000/'));
-
-      print('✅ ¡CONEXIÓN EXITOSA!');
-      print('📡 Status: ${response.statusCode}');
-      print('📦 Body: ${response.body}');
-
-      // Si esto funciona, el problema está en el endpoint /auth/login
-      print('🔐 Probando endpoint de login...');
-
-      final loginTest = await http.post(
-        Uri.parse('http://localhost:8000/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': 'ana@test.com', 'password': '123456'}),
-      );
-
-      print('📡 Login Status: ${loginTest.statusCode}');
-      print('📦 Login Response: ${loginTest.body}');
+      print('✅ ¡CONEXIÓN EXITOSA! Status: ${response.statusCode}');
     } catch (e) {
       print('❌ ERROR: $e');
     }
   }
 
   void _login() async {
-    // Validar que el formulario esté correcto
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -54,35 +37,24 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      print('📡 Enviando credenciales al servidor...');
-
-      // Llamar al servicio de autenticación real
       final resultado = await AuthService.login(
         email: _emailController.text.trim(),
         password: _contrasenaController.text,
       );
 
       if (resultado['success'] == true) {
-        // ✅ Login exitoso
-        print('✅ Login exitoso!');
-        print('🔑 Token: ${resultado['token']}');
-        print('👤 Usuario: ${resultado['usuario']}');
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(resultado['message'] ?? '¡Login exitoso!'),
-            backgroundColor: Colors.green,
+            backgroundColor: TemaService.colorAcento,
           ),
         );
 
-        // Navegar a la pantalla principal
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Home()),
         );
       } else {
-        // ❌ Login fallido
-        print('❌ Error en login: ${resultado['message']}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(resultado['message'] ?? 'Error en el login'),
@@ -91,7 +63,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      print('❌ ERROR en login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error de conexión: $e'),
@@ -112,7 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // En initState:
   @override
   void initState() {
     super.initState();
@@ -131,7 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-
                 // Logo y título
                 const Icon(Icons.event, size: 80, color: Colors.blue),
                 const SizedBox(height: 20),
@@ -147,9 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Inicia sesión en tu cuenta',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
-
                 const SizedBox(height: 40),
-
                 // Campo de EMAIL
                 TextFormField(
                   controller: _emailController,
@@ -173,9 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 20),
-
                 // Campo de contraseña
                 TextFormField(
                   controller: _contrasenaController,
@@ -212,16 +177,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 10),
-
                 // Botón de login
                 _cargando
                     ? const CircularProgressIndicator()
                     : ElevatedButton(
                         onPressed: _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: TemaService.colorPrimario,
                           foregroundColor: Colors.white,
                           minimumSize: const Size(double.infinity, 55),
                           shape: RoundedRectangleBorder(
@@ -235,9 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
-
                 const SizedBox(height: 20),
-
                 // Divider
                 Row(
                   children: [
@@ -249,9 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Expanded(child: Divider()),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
                 // Botón de registro
                 OutlinedButton(
                   onPressed: _irARegistro,
@@ -267,7 +226,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     side: const BorderSide(color: Colors.blue),
                   ),
                 ),
-
                 const SizedBox(height: 30),
               ],
             ),

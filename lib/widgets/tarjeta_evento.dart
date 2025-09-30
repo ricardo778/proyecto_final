@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../modelos/evento.dart';
+import '../servicios/tema_service.dart';
 import '../pantallas/detalle_evento.dart';
 
 class TarjetaEvento extends StatelessWidget {
@@ -16,35 +17,38 @@ class TarjetaEvento extends StatelessWidget {
       case TipoEvento.CONFERENCIA:
         return Icons.school;
       default:
-        return Icons.event; // ← fallback
+        return Icons.event;
     }
   }
 
   Color _obtenerColorPorTipo(TipoEvento tipo) {
     switch (tipo) {
       case TipoEvento.CONCIERTO:
-        return Colors.purple;
+        return TemaService.colorSecundario;
       case TipoEvento.FERIA:
         return Colors.orange;
       case TipoEvento.CONFERENCIA:
-        return Colors.blue;
+        return TemaService.colorAcento;
       default:
-        return Colors.grey; // ← fallback
+        return TemaService.colorPrimario;
     }
   }
 
   String _formatearFecha(DateTime fecha) {
-    return '${fecha.day}/${fecha.month}/${fecha.year} ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
+    final meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return '${fecha.day} ${meses[fecha.month - 1]} • ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorTipo = _obtenerColorPorTipo(evento.tipo);
+
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
           Navigator.push(
             context,
@@ -60,12 +64,12 @@ class TarjetaEvento extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _obtenerColorPorTipo(evento.tipo).withOpacity(0.1),
+                  color: colorTipo.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   _obtenerIconoPorTipo(evento.tipo),
-                  color: _obtenerColorPorTipo(evento.tipo),
+                  color: colorTipo,
                   size: 24,
                 ),
               ),

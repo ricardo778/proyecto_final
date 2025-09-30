@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../servicios/auth_service.dart';
+import '../servicios/tema_service.dart';
 import 'login_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -7,7 +8,7 @@ class PerfilScreen extends StatefulWidget {
   _PerfilScreenState createState() => _PerfilScreenState();
 }
 
-class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderStateMixin {
+class _PerfilScreenState extends State<PerfilScreen> {
   final _nombreController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefonoController = TextEditingController();
@@ -23,20 +24,11 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
   bool _ocultarNuevoPassword = true;
   bool _ocultarConfirmarPassword = true;
   
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
   Map<String, dynamic>? _usuario;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
     _cargarDatosUsuario();
   }
 
@@ -76,18 +68,6 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
     }
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _nombreController.dispose();
-    _emailController.dispose();
-    _telefonoController.dispose();
-    _passwordActualController.dispose();
-    _nuevoPasswordController.dispose();
-    _confirmarPasswordController.dispose();
-    super.dispose();
-  }
-
   void _toggleEditar() {
     setState(() {
       _editando = !_editando;
@@ -122,51 +102,20 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
     });
   }
 
-  bool _validarFormularioPerfil() {
+  void _guardarCambios() async {
     if (_nombreController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('El nombre no puede estar vacío'), backgroundColor: Colors.red),
       );
-      return false;
+      return;
     }
     
     if (_emailController.text.trim().isEmpty || !_emailController.text.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ingresa un email válido'), backgroundColor: Colors.red),
       );
-      return false;
+      return;
     }
-    
-    return true;
-  }
-
-  bool _validarFormularioPassword() {
-    if (_passwordActualController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ingresa tu contraseña actual'), backgroundColor: Colors.red),
-      );
-      return false;
-    }
-    
-    if (_nuevoPasswordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('La nueva contraseña debe tener al menos 6 caracteres'), backgroundColor: Colors.red),
-      );
-      return false;
-    }
-    
-    if (_nuevoPasswordController.text != _confirmarPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Las contraseñas no coinciden'), backgroundColor: Colors.red),
-      );
-      return false;
-    }
-    
-    return true;
-  }
-
-  void _guardarCambios() async {
-    if (!_validarFormularioPerfil()) return;
 
     setState(() {
       _guardando = true;
@@ -188,7 +137,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(children: [Icon(Icons.check_circle, color: Colors.white), SizedBox(width: 8), Text('Perfil actualizado exitosamente')]),
-            backgroundColor: Colors.green,
+            backgroundColor: TemaService.colorAcento,
           ),
         );
       } else {
@@ -210,7 +159,26 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
   }
 
   void _cambiarPassword() async {
-    if (!_validarFormularioPassword()) return;
+    if (_passwordActualController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ingresa tu contraseña actual'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    
+    if (_nuevoPasswordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('La nueva contraseña debe tener al menos 6 caracteres'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    
+    if (_nuevoPasswordController.text != _confirmarPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Las contraseñas no coinciden'), backgroundColor: Colors.red),
+      );
+      return;
+    }
 
     setState(() {
       _guardando = true;
@@ -226,7 +194,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(children: [Icon(Icons.check_circle, color: Colors.white), SizedBox(width: 8), Text('Contraseña actualizada exitosamente')]),
-            backgroundColor: Colors.green,
+            backgroundColor: TemaService.colorAcento,
           ),
         );
         _toggleCambioPassword();
@@ -260,7 +228,6 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(children: [Icon(Icons.logout, color: Colors.red), SizedBox(width: 8), Text('Cerrar Sesión')]),
         content: Text('¿Estás seguro de que quieres cerrar sesión?'),
         actions: [
@@ -271,7 +238,10 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
               AuthService.logout();
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginScreen()), (route) => false);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: Text('Cerrar Sesión'),
           ),
         ],
@@ -284,15 +254,14 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
       margin: EdgeInsets.symmetric(vertical: 8),
       child: Card(
         elevation: _editando ? 3 : 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
                 padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), shape: BoxShape.circle),
-                child: Icon(icono, color: Colors.blue, size: 20),
+                decoration: BoxDecoration(color: TemaService.colorPrimario.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(icono, color: TemaService.colorPrimario, size: 20),
               ),
               SizedBox(width: 16),
               Expanded(
@@ -308,8 +277,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.blue, width: 1.5)),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.blue, width: 2)),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                           )
                         : Text(
@@ -326,56 +294,24 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildCampoPassword(String titulo, TextEditingController controller, bool obscureText, VoidCallback onToggleVisibility) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 8),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        decoration: InputDecoration(
-          labelText: titulo,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          suffixIcon: IconButton(
-            icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
-            onPressed: onToggleVisibility,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_cargando) {
       return Scaffold(
-        backgroundColor: Colors.grey[50],
-        appBar: AppBar(title: Text('Mi Perfil'), backgroundColor: Colors.blue, foregroundColor: Colors.white),
+        appBar: AppBar(title: Text('Mi Perfil'), backgroundColor: TemaService.colorPrimario, foregroundColor: Colors.white),
         body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [CircularProgressIndicator(), SizedBox(height: 20), Text('Cargando perfil...')])),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
+        backgroundColor: TemaService.colorPrimario,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: _editando 
             ? [IconButton(icon: Icon(Icons.close), onPressed: _cancelarEdicion, tooltip: 'Cancelar')]
-            : [PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                onSelected: (value) {
-                  if (value == 'logout') _cerrarSesion();
-                },
-                itemBuilder: (BuildContext context) => [
-                  PopupMenuItem<String>(
-                    value: 'logout',
-                    child: Row(children: [Icon(Icons.logout, color: Colors.red, size: 20), SizedBox(width: 12), Text('Cerrar Sesión', style: TextStyle(color: Colors.red))]),
-                  ),
-                ],
-              )],
+            : [IconButton(icon: Icon(Icons.edit), onPressed: _toggleEditar, tooltip: 'Editar')],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -396,8 +332,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(colors: [Colors.blue, Colors.lightBlue], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                      boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 20, offset: Offset(0, 8))],
+                      gradient: LinearGradient(colors: [TemaService.colorPrimario, TemaService.colorSecundario], begin: Alignment.topLeft, end: Alignment.bottomRight),
                     ),
                     child: CircleAvatar(radius: 60, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 50, color: Colors.white)),
                   ),
@@ -410,35 +345,22 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                   // Botón editar/guardar
                   _guardando
                       ? CircularProgressIndicator()
-                      : AnimatedBuilder(
-                          animation: _scaleAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _scaleAnimation.value,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  _animationController.forward().then((_) => _animationController.reverse());
-                                  if (_editando) {
-                                    _guardarCambios();
-                                  } else {
-                                    _toggleEditar();
-                                  }
-                                },
-                                icon: AnimatedSwitcher(
-                                  duration: Duration(milliseconds: 300),
-                                  child: Icon(_editando ? Icons.save : Icons.edit, key: ValueKey(_editando), size: 20),
-                                ),
-                                label: Text(_editando ? 'Guardar Cambios' : 'Editar Perfil', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _editando ? Colors.green : Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                                  elevation: 3,
-                                ),
-                              ),
-                            );
+                      : ElevatedButton.icon(
+                          onPressed: () {
+                            if (_editando) {
+                              _guardarCambios();
+                            } else {
+                              _toggleEditar();
+                            }
                           },
+                          icon: Icon(_editando ? Icons.save : Icons.edit, size: 20),
+                          label: Text(_editando ? 'Guardar Cambios' : 'Editar Perfil', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _editando ? TemaService.colorAcento : TemaService.colorPrimario,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                          ),
                         ),
                   
                   SizedBox(height: 10),
@@ -447,7 +369,7 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
                   if (_editando && !_mostrarCambioPassword)
                     TextButton(
                       onPressed: _toggleCambioPassword,
-                      child: Text('Cambiar Contraseña', style: TextStyle(color: Colors.blue)),
+                      child: Text('Cambiar Contraseña', style: TextStyle(color: TemaService.colorPrimario)),
                     ),
                 ],
               ),
@@ -455,81 +377,122 @@ class _PerfilScreenState extends State<PerfilScreen> with SingleTickerProviderSt
             
             SizedBox(height: 20),
             
-            // Información personal editable
+            // Información personal
             if (_editando) ...[
               _buildInfoItem('Nombre', _nombreController.text, Icons.person, _nombreController, true),
               _buildInfoItem('Email', _emailController.text, Icons.email, _emailController, true),
               _buildInfoItem('Teléfono', _telefonoController.text, Icons.phone, _telefonoController, true),
-              
-              // Sección de cambio de contraseña
-              if (_mostrarCambioPassword) ...[
-                SizedBox(height: 20),
-                Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.lock, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text('Cambiar Contraseña', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            Spacer(),
-                            IconButton(
-                              icon: Icon(Icons.close),
-                              onPressed: _toggleCambioPassword,
-                              tooltip: 'Cerrar',
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        _buildCampoPassword(
-                          'Contraseña Actual',
-                          _passwordActualController,
-                          _ocultarPasswordActual,
-                          () => setState(() => _ocultarPasswordActual = !_ocultarPasswordActual),
-                        ),
-                        _buildCampoPassword(
-                          'Nueva Contraseña',
-                          _nuevoPasswordController,
-                          _ocultarNuevoPassword,
-                          () => setState(() => _ocultarNuevoPassword = !_ocultarNuevoPassword),
-                        ),
-                        _buildCampoPassword(
-                          'Confirmar Nueva Contraseña',
-                          _confirmarPasswordController,
-                          _ocultarConfirmarPassword,
-                          () => setState(() => _ocultarConfirmarPassword = !_ocultarConfirmarPassword),
-                        ),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _cambiarPassword,
-                          child: Text('Actualizar Contraseña'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            minimumSize: Size(double.infinity, 50),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
             ] else ...[
-              // Información personal solo lectura
               _buildInfoItem('Nombre', _nombreController.text, Icons.person, _nombreController, false),
               _buildInfoItem('Email', _emailController.text, Icons.email, _emailController, false),
               _buildInfoItem('Teléfono', _telefonoController.text, Icons.phone, _telefonoController, false),
             ],
             
+            // Sección de cambio de contraseña
+            if (_mostrarCambioPassword) ...[
+              SizedBox(height: 20),
+              Card(
+                elevation: 3,
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.lock, color: TemaService.colorPrimario),
+                          SizedBox(width: 8),
+                          Text('Cambiar Contraseña', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Spacer(),
+                          IconButton(
+                            icon: Icon(Icons.close),
+                            onPressed: _toggleCambioPassword,
+                            tooltip: 'Cerrar',
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordActualController,
+                        obscureText: _ocultarPasswordActual,
+                        decoration: InputDecoration(
+                          labelText: 'Contraseña Actual',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          suffixIcon: IconButton(
+                            icon: Icon(_ocultarPasswordActual ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () => setState(() => _ocultarPasswordActual = !_ocultarPasswordActual),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nuevoPasswordController,
+                        obscureText: _ocultarNuevoPassword,
+                        decoration: InputDecoration(
+                          labelText: 'Nueva Contraseña',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          suffixIcon: IconButton(
+                            icon: Icon(_ocultarNuevoPassword ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () => setState(() => _ocultarNuevoPassword = !_ocultarNuevoPassword),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _confirmarPasswordController,
+                        obscureText: _ocultarConfirmarPassword,
+                        decoration: InputDecoration(
+                          labelText: 'Confirmar Nueva Contraseña',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          suffixIcon: IconButton(
+                            icon: Icon(_ocultarConfirmarPassword ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () => setState(() => _ocultarConfirmarPassword = !_ocultarConfirmarPassword),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _cambiarPassword,
+                        child: Text('Actualizar Contraseña'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TemaService.colorAcento,
+                          foregroundColor: Colors.white,
+                          minimumSize: Size(double.infinity, 50),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            
             SizedBox(height: 30),
+            
+            // Botón cerrar sesión
+            if (!_editando)
+              ElevatedButton(
+                onPressed: _cerrarSesion,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  minimumSize: Size(double.infinity, 50),
+                ),
+                child: Text('Cerrar Sesión'),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _emailController.dispose();
+    _telefonoController.dispose();
+    _passwordActualController.dispose();
+    _nuevoPasswordController.dispose();
+    _confirmarPasswordController.dispose();
+    super.dispose();
   }
 }

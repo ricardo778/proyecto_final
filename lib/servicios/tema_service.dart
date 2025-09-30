@@ -1,10 +1,13 @@
-// servicios/tema_service.dart (CON CARDTHEME)
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TemaService {
   static const String _keyTema = 'modo_oscuro';
   static const String _keyIdioma = 'idioma';
+
+  static const Color colorPrimario = Color(0xFF6366F1);
+  static const Color colorSecundario = Color(0xFFEC4899);
+  static const Color colorAcento = Color(0xFF10B981);
 
   static Future<bool> esModoOscuro() async {
     try {
@@ -43,22 +46,6 @@ class TemaService {
   }
 
   static ThemeData getTema(bool modoOscuro) {
-    if (modoOscuro) {
-      return ThemeData.dark().copyWith(
-        primaryColor: Colors.blue[800],
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.blue[800],
-          elevation: 4,
-        ),
-      );
-    } else {
-      return ThemeData.light().copyWith(
-        primaryColor: Colors.blue,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
-          elevation: 4,
-        ),
-      );
-    }
+    return modoOscuro ? ThemeData.dark() : ThemeData.light();
   }
 }

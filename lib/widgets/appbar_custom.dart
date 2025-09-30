@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../servicios/tema_service.dart';
 
 class AppBarCustom extends StatelessWidget implements PreferredSizeWidget {
   final String titulo;
@@ -25,7 +26,7 @@ class AppBarCustom extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       centerTitle: true,
-      backgroundColor: Colors.blue,
+      backgroundColor: TemaService.colorPrimario,
       foregroundColor: Colors.white,
       elevation: 4,
       shadowColor: Colors.black.withOpacity(0.3),

@@ -1,4 +1,3 @@
-// pantallas/configuracion_screen.dart
 import 'package:flutter/material.dart';
 import '../servicios/tema_service.dart';
 import '../servicios/idioma_service.dart';
@@ -85,7 +84,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: ListTile(
-        leading: Icon(icono, color: Colors.blue),
+        leading: Icon(icono, color: TemaService.colorPrimario),
         title: Text(titulo, style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitulo),
         trailing: control,
@@ -103,7 +102,11 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Configuración')),
+      appBar: AppBar(
+        title: Text('Configuración'),
+        backgroundColor: TemaService.colorPrimario,
+        foregroundColor: Colors.white,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -115,7 +118,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
               control: Switch(
                 value: _modoOscuro,
                 onChanged: _cambiarModoOscuro,
-                activeColor: Colors.blue,
+                activeColor: TemaService.colorPrimario,
               ),
             ),
 

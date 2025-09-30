@@ -1,4 +1,3 @@
-// pantallas/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import '../servicios/tema_service.dart';
@@ -39,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: TemaService.colorPrimario,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

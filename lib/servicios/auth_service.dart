@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   static const String baseUrl = 'http://localhost:8000';
 
-  // ========== FUNCIONES DE TOKEN Y USUARIO ==========
   static Future<void> guardarToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
@@ -33,7 +32,7 @@ class AuthService {
   static Future<void> eliminarToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
-    await prefs.remove('usuario_data'); // También eliminar datos del usuario
+    await prefs.remove('usuario_data');
   }
 
   static Future<bool> estaLogueado() async {
@@ -41,7 +40,6 @@ class AuthService {
     return token != null;
   }
 
-  // ========== FUNCIONES DE API ==========
   static Future<Map<String, dynamic>> registrarUsuario({
     required String nombre,
     required String email,
@@ -49,8 +47,6 @@ class AuthService {
     String? telefono,
   }) async {
     try {
-      print('📝 Intentando registrar usuario: $email');
-
       final response = await http.post(
         Uri.parse('$baseUrl/auth/registro'),
         headers: {'Content-Type': 'application/json'},
@@ -62,13 +58,8 @@ class AuthService {
         }),
       );
 
-      print('📝 Register Response Status: ${response.statusCode}');
-      print('📝 Register Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
-        // ✅ GUARDAR TOKEN Y USUARIO
         await guardarToken(data['token']);
         await guardarUsuario(data['usuario']);
 
@@ -86,7 +77,6 @@ class AuthService {
         };
       }
     } catch (e) {
-      print('❌ Error en registro: $e');
       return {
         'success': false,
         'message': 'Error de conexión: $e',
@@ -99,8 +89,6 @@ class AuthService {
     required String password,
   }) async {
     try {
-      print('🔐 Intentando login para: $email');
-
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -110,13 +98,8 @@ class AuthService {
         }),
       );
 
-      print('📡 Login Response Status: ${response.statusCode}');
-      print('📡 Login Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
-        // ✅ GUARDAR TOKEN Y USUARIO
         await guardarToken(data['token']);
         await guardarUsuario(data['usuario']);
 
@@ -134,7 +117,6 @@ class AuthService {
         };
       }
     } catch (e) {
-      print('❌ Error en login: $e');
       return {
         'success': false,
         'message': 'Error de conexión: $e',
@@ -153,12 +135,8 @@ class AuthService {
         Uri.parse('$baseUrl/auth/verificar?token=$token'),
       );
 
-      print('🔍 Verificar Token Status: ${response.statusCode}');
-      print('🔍 Verificar Token Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // ✅ ACTUALIZAR DATOS DEL USUARIO
         await guardarUsuario(data);
         return {
           'success': true,
@@ -185,8 +163,6 @@ class AuthService {
     await eliminarToken();
   }
 
-  // Agrega esta función en AuthService
-  // Actualiza la función existente y agrega la nueva
   static Future<Map<String, dynamic>> actualizarPerfil({
     required String nombre,
     required String email,
@@ -198,8 +174,6 @@ class AuthService {
         return {'success': false, 'message': 'No hay sesión activa'};
       }
 
-      print('📝 Actualizando perfil...');
-
       final response = await http.put(
         Uri.parse('$baseUrl/auth/usuario/actualizar?token=$token'),
         headers: {'Content-Type': 'application/json'},
@@ -210,13 +184,8 @@ class AuthService {
         }),
       );
 
-      print('📝 Actualizar Perfil Status: ${response.statusCode}');
-      print('📝 Actualizar Perfil Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
-        // ✅ ACTUALIZAR DATOS LOCALES
         await guardarUsuario(data);
 
         return {
@@ -232,7 +201,6 @@ class AuthService {
         };
       }
     } catch (e) {
-      print('❌ Error al actualizar perfil: $e');
       return {
         'success': false,
         'message': 'Error de conexión: $e',
@@ -240,7 +208,6 @@ class AuthService {
     }
   }
 
-// Nueva función para cambiar contraseña
   static Future<Map<String, dynamic>> cambiarPassword({
     required String passwordActual,
     required String nuevoPassword,
@@ -251,8 +218,6 @@ class AuthService {
         return {'success': false, 'message': 'No hay sesión activa'};
       }
 
-      print('🔐 Cambiando contraseña...');
-
       final response = await http.put(
         Uri.parse('$baseUrl/auth/usuario/cambiar-password?token=$token'),
         headers: {'Content-Type': 'application/json'},
@@ -261,9 +226,6 @@ class AuthService {
           'nuevo_password': nuevoPassword,
         }),
       );
-
-      print('🔐 Cambiar Password Status: ${response.statusCode}');
-      print('🔐 Cambiar Password Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -279,7 +241,6 @@ class AuthService {
         };
       }
     } catch (e) {
-      print('❌ Error al cambiar contraseña: $e');
       return {
         'success': false,
         'message': 'Error de conexión: $e',
