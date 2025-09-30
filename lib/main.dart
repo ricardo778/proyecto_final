@@ -18,7 +18,6 @@ class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
-
 class _MyAppState extends State<MyApp> {
   bool _modoOscuro = false;
   String _idioma = 'es';
